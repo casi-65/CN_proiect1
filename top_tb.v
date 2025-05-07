@@ -52,10 +52,12 @@ module top_level_tb;
             inbus = in2; #10;
 
             wait(final); #10;
-
-            if ({8'b00000000, outbus[15:8]} !== expected)
+            if (outbus[15:8] !== expected)
                 $display("FAIL: %d + %d = %d, expected %d", in1, in2, {8'b00000000, outbus[15:8]}, expected);
             else
+              if(outbus[15] == 1)
+                $display("PASS: %d + %d = -%d", in1, in2, ~({8'b11111111, outbus[15:8]}) + 8'b00000001);
+              else  
                 $display("PASS: %d + %d = %d", in1, in2, {8'b00000000, outbus[15:8]});
         end
     endtask
@@ -75,10 +77,13 @@ module top_level_tb;
             inbus = in2; #10;
 
             wait(final); #10;
-            if ({8'b00000000, outbus[15:8]} !== expected)
-                $display("FAIL: %d + %d = %d, expected %d", in1, in2, {8'b00000000, outbus[15:8]}, expected);
+            if ( outbus[15:8] !== expected)
+                $display("FAIL: %d - %d = %d, expected %d", in2, in1, {8'b00000000, outbus[15:8]}, expected);
             else
-                $display("PASS: %d + %d = %d", in1, in2, {8'b00000000, outbus[15:8]});
+              if(outbus[15] == 1)
+                $display("PASS: %d - %d = -%d", in2, in1, ~{8'b11111111, outbus[15:8]} + 8'b00000001);
+              else 
+                $display("PASS: %d - %d = %d", in2, in1, {8'b00000000, outbus[15:8]});
         end
     endtask
 
@@ -100,8 +105,12 @@ module top_level_tb;
 
             if (outbus !== expected)
                 $display("FAIL: %d * %d = %d, expected %d", in1, in2, outbus, expected);
-            else
-                $display("PASS: %d * %d = %d", in1, in2, outbus);
+            else begin
+                if(outbus[15] == 1) 
+                 $display("PASS: %d * %d = -%d", in1, in2,~outbus+16'b0000000000000001);
+               else
+                 $display("PASS: %d * %d = %d", in1, in2, outbus);
+            end
         end
     endtask
 
@@ -132,16 +141,19 @@ module top_level_tb;
         end
     endtask
 
-    // Testare complet?
+    // Testare completa
     initial begin
         $display("=== TEST BENCH START ===");
 
         rst = 1; start = 0; op = 2'b00; inbus = 8'h00;
         #20 rst = 0;
 
-        add(20, 10);
-        subtract(10, 30);
-        multiply(5, 4);
+        add(60,55);
+        add(120,-30);
+        subtract(60,120);
+        subtract(-15,25);
+        multiply(60,60);
+        multiply(50,-12);
         divide(16'h03E8, 8'd12); // 1000 / 12 // 
 
         $display("=== TEST BENCH END ===");
